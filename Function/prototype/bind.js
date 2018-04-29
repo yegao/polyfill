@@ -39,21 +39,30 @@ if (!Function.prototype.bind) {
       // internal IsCallable function
       throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
     }
-
+    //aArgs是传入Function.prototype.bind的实参(除去第一个参数)
+    //也就是Foo.bind({},23,45)(67,89)或者new(Foo.bind({},23,45))(67,89),那么aArgs就是[23,45]
     var aArgs   = Array.prototype.slice.call(arguments, 1),
-        fToBind = this,
+        fToBind = this,//在Foo.bind() 和 new (Foo.bind())() 的时候，这个this指代的都是Foo
         fNOP    = function() {},
         fBound  = function() {
+          //在new (Foo.bind())()的时候，最后就是new fBound()
+          //这里的this指代的是Function.prototype.bind函数的构造出来的实例
+          //也就是fBound函数构造出来的实例，即this.__proto__ === fBound.prototype === new fNOP();
+          //也就是this instanceof fNOP
+          //由于下面维护原型关系的代码，使得this.__proto__.__proto__ === fNOP.prototype === Foo.prototype
           return fToBind.apply(this instanceof fNOP
                  ? this
                  : oThis,
-                 // 获取调用时(fBound)的传参.bind 返回的函数入参往往是这么传递的
+                 //这个地方的arguments是传入fBound的实参
+                 //如果Foo.bind({},23,45)(67,89)或者new(Foo.bind({},23,45))(67,89)
+                 //那么arguments就是[67,89]
                  aArgs.concat(Array.prototype.slice.call(arguments)));
         };
 
     // 维护原型关系
     if (this.prototype) {
-      // Function.prototype doesn't have a prototype property
+      //在Foo.bind() 和 new (Foo.bind())() 的时候，这个this指代的都是Foo
+      //Function.prototype是没有Prototype属性的，但是Foo可能有
       fNOP.prototype = this.prototype;
     }
     fBound.prototype = new fNOP();
