@@ -32,6 +32,35 @@ Function.prototype.bind = function(){
 
 // 三、
 // MDN上的polyfill写法
+// 这个执行之后其实和native code还是有一些区别的
+// 经过试验发现native版本的bind是不能够被一下polyfill覆盖掉的
+// 有如下代码
+// var Foo = function(){
+//  	console.log('Foo------');
+// }
+// Foo.prototype = {
+// 	 a:'a',
+// 	 b:'b'
+// }
+// var x = new (Foo.bind())()
+// native版本的bind在执行如下的过程的时候结果是：
+// x{
+//   __proto__:{
+//     a:'a',
+//     b:'b'
+//   }
+// }
+//
+// polyfill版本的bind在执行如下的过程的时候结果是：
+// x{
+//   __proto__:{
+//     __proto__:{
+//       a:'a',
+//       b:'b'
+//     }
+//   }
+// }
+
 if (!Function.prototype.bind) {
   Function.prototype.bind = function(oThis) {
     if (typeof this !== 'function') {
@@ -66,7 +95,6 @@ if (!Function.prototype.bind) {
       fNOP.prototype = this.prototype;
     }
     fBound.prototype = new fNOP();
-
     return fBound;
   };
 }
